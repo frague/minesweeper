@@ -72,6 +72,25 @@ function minesweeper(size) {
 }
 
 function cell(x, y, cells) {
-    var td = document.createElement("td");
-    return td;
+    this.x = x;
+    this.y = y;
+    this.state = "default";
+    this.cells = cells;
+    this.id = x + ":" + y;
+    this.element = document.createElement("td");
+    this.element.id = this.id;
+    this.element.cell = this;
+    this.element.onclick = function() {
+        this.cell.stepped();
+    }
+    this.element.oncontextmenu = function() {
+        console.log(this.cell.x, this.cell.y);
+        return false;
+    }
+    this.cells[this.id] = this;
+    return this.element;
+}
+
+cell.prototype.stepped = function() {
+    
 }
