@@ -1,0 +1,31 @@
+#welcome {
+    text-align: center;
+    padding-top: 100px;
+}
+
+#playground {
+    padding: 20px;
+}
+
+.hidden {
+    display: none;
+}
+
+table tbody#field {
+    border: solid 1px black;
+    border-width: 1px 0 0 1px;
+}
+
+table {
+    float: left;
+    margin: 0 50px 0 10px;
+    border-collapse: collapse;
+}
+
+table tbody#field td {
+    border: solid 1px black;
+    border-width: 0 1px 1px 0;
+    width: 20px;
+    height: 20px;
+    border-collapse: collapse;
+}

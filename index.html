@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Minesweeper</title>
+        <link rel="stylesheet" href="styles.css">
+    </head>    
+    <body>
+        <div id="welcome">
+            <h1>Hello, minesweeper!</h1>
+            <p>Choose what size the mine field will be: 
+            <input id="size" type="text" size="2" value="10" onkeyup="validate(this.value)">
+            <button id="btn_start" onclick="play()">Play</button>
+        </div>
+        <div id="playground" class="hidden">
+            <table><tbody id="field"></tbody></table>
+            <p>Left click to step into the cell, right click - to flag one.
+        </div>
+    </body>    
+    <script src="minesweeper.js"></script>
+</html>
