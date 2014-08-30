@@ -51,7 +51,6 @@ table tbody#field td {
 }
 
 #field td.flag {
-    background-color: #888;
     background-image: url(img/flag.png);
 }
 
@@ -59,6 +58,12 @@ table tbody#field td {
     background-image: url(img/bomb.png);
 }
 
+#field td.discovered {
+    background-size: 70% 70%;
+    background-position: center center;
+    background-color: inherit;
+}
+    
 #field td.a1 {
     background-image: url(img/1.png);
 }
