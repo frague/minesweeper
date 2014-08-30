@@ -22,8 +22,12 @@ table {
     border-radius: 4px;
 }
 
+table tbody#field.won {
+    background-color: #4F4;
+}
+
 table tbody#field.exploded {
-    background-color: red;
+    background-color: #F44;
 }
 
 table tbody#field tr td:nth-child(1) {

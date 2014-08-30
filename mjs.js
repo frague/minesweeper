@@ -45,3 +45,8 @@ mp.append = function(element, switch_to) {
     if (switch_to) this.element = element;
     return this;
 }
+
+mp.text = function(text) {
+    this.element.innerText = text;
+    return this;
+}

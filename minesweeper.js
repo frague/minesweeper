@@ -15,9 +15,14 @@ function play() {
 function minesweeper(size) {
     this.size = size;
     this.cells = new cells();
-    this.ended = false;
+    this.status = $("result");
 
     this.id = function(x, y) {return x + ":" + y}
+
+    this.update = function(status) {
+        if (!status) status = this.moves + " moves made so far";
+        this.status.text(status);
+    }
 
     this.run = function() {
         // Generate field
@@ -42,14 +47,23 @@ function minesweeper(size) {
                 }
         }
 
-        $("field").removeClass("exploded");
+        $("field").removeClass("exploded").removeClass("won");
         this.ended = false;
+        this.moves = 0;
+        this.update();
     }
 
     this.end = function(exploded_cell) {
         $("field").addClass("exploded");
         this.ended = true;
         this.cells.each(function(i) {i.redraw()})
+        this.update("All Your Base Are Belong To Us!");
+    }
+
+    this.won = function() {
+        $("field").addClass("won");
+        this.ended = true;
+        this.update("Congratulations!");
     }
 }
 
@@ -90,10 +104,22 @@ function cell(x, y, game) {
     this.element.onclick = function() {
         this.cell.stepped();
     }
+
     this.element.oncontextmenu = function() {
         if (this.cell.opened || this.cell.game.ended) return false;
         this.cell.flagged = !this.cell.flagged;
         this.cell.redraw();
+
+        // Check if game is won
+        var completed = true, c;
+        for (k in this.cell.game.cells.data) {
+            c = this.cell.game.cells.data[k];
+            if ((c.has_bomb && !c.flagged) || (!c.has_bomb && !c.opened)) {
+                completed = false;
+                break;
+            }
+        }
+        if (completed) this.cell.game.won();
         return false;
     }
     this.game.cells.put(this);
@@ -112,9 +138,15 @@ cp.redraw = function() {
     this.element.className = "cell " + state;
 }
 
-cp.stepped = function() {
+cp.stepped = function(rec) {
     if (this.game.ended) return false;
     if (this.has_bomb) return game.end(this);
+
+    if (!rec) {
+        this.game.moves++;
+        this.game.update();
+    }
+
     this.opened = true;
     this.redraw();
     for (var x = -1; x < 2; x++)
@@ -125,7 +157,7 @@ cp.stepped = function() {
             if (c.bombs_around) {
                 c.discovered = true;
                 c.redraw();
-            } else c.stepped();
+            } else c.stepped(true);
         }
 }
 
