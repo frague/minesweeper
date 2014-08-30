@@ -11,21 +11,82 @@
     display: none;
 }
 
-table tbody#field {
-    border: solid 1px black;
-    border-width: 1px 0 0 1px;
-}
-
 table {
     float: left;
     margin: 0 50px 0 10px;
-    border-collapse: collapse;
+    border: solid 10px #555;
+    border-spacing: 0;
+
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+
+table tbody#field.exploded {
+    background-color: red;
+}
+
+table tbody#field tr td:nth-child(1) {
+    border-left-width: 0;
 }
 
 table tbody#field td {
-    border: solid 1px black;
-    border-width: 0 1px 1px 0;
+    border: dotted 1px #555;
+    border-width: 1px 0 0 1px;
     width: 20px;
     height: 20px;
-    border-collapse: collapse;
+}
+
+#field td.cell {
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+#field td.default {
+    background-color: #888;
+}
+
+#field td.opened {
+    background-color: inherit;
+}
+
+#field td.flag {
+    background-color: #888;
+    background-image: url(img/flag.png);
+}
+
+#field td.bomb {
+    background-image: url(img/bomb.png);
+}
+
+#field td.a1 {
+    background-image: url(img/1.png);
+}
+
+#field td.a2 {
+    background-image: url(img/2.png);
+}
+
+#field td.a3 {
+    background-image: url(img/3.png);
+}
+
+#field td.a4 {
+    background-image: url(img/4.png);
+}
+
+#field td.a5 {
+    background-image: url(img/5.png);
+}
+
+#field td.a6 {
+    background-image: url(img/6.png);
+}
+
+#field td.a7 {
+    background-image: url(img/7.png);
+}
+
+#field td.a8 {
+    background-image: url(img/8.png);
 }
