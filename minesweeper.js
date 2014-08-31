@@ -28,7 +28,12 @@ function minesweeper(size) {
         // Generate field
         $("field").clear();
         for (var y = 0; y < this.size; y++)
-            for (var x = 0, tr = $("field").append("tr", true); x < size; x++) tr.append(new cell(x, y, this));
+            for (var x = 0, c, tr = $("field").append("tr", true); x < size; x++) {
+                c = new cell(x, y, this);
+                if (!x || x == this.size - 1) c.closed_around -= 3;
+                if (!y || y == this.size - 1) c.closed_around -= 3;
+                tr.append(c);
+            }
 
         // Set the bombs
         for (var i = 0, a = x * y / 7; i < a; i++) {
@@ -94,10 +99,11 @@ function cell(x, y, game) {
 
     this.has_bomb = false;
     this.opened = false;
-    this.discovered = false;
     this.flagged = false;
 
     this.bombs_around = 0;
+    this.closed_around = 8;
+
     this.element = document.createElement("td");
     this.element.id = this.id;
     this.element.cell = this;
@@ -114,7 +120,7 @@ function cell(x, y, game) {
         var completed = true, c;
         for (k in this.cell.game.cells.data) {
             c = this.cell.game.cells.data[k];
-            if ((c.has_bomb && !c.flagged) || (!c.has_bomb && !c.opened)) {
+            if (!c.has_bomb && !c.opened) {
                 completed = false;
                 break;
             }
@@ -132,17 +138,17 @@ var cp = cell.prototype;
 cp.redraw = function() {
     state = "default";
     if (this.game.ended && this.has_bomb) state = "bomb";
-    else if (this.opened) state = "opened";
+    else if (this.opened) state = this.closed_around && this.bombs_around ? "discovered a" + this.bombs_around: "opened";
     else if (this.flagged) state = "flag " + (this.discovered ? "opened" : "default");
-    else if (this.discovered) state = "discovered a" + this.bombs_around;
+    //else if (this.discovered) state = "discovered a" + this.bombs_around;
     this.element.className = "cell " + state;
 }
 
 cp.stepped = function(rec) {
-    if (this.game.ended) return false;
+    if (this.game.ended || this.opened) return false;
     if (this.has_bomb) return game.end(this);
 
-    if (!rec) {
+    if (arguments.length == 0) {
         this.game.moves++;
         this.game.update();
     }
@@ -152,12 +158,16 @@ cp.stepped = function(rec) {
     for (var x = -1; x < 2; x++)
         for (var y = -1; y < 2; y++) {
             if (!x && !y) continue;
+
             var c = this.game.cells.get(this.x + x, this.y + y);
-            if (!c || c.opened || c.discovered) continue;
+            if (!c || c.opened || (c.has_bomb && rec !== false)) continue;
+            c.closed_around--;
+            if (rec === false) continue;
+
             if (c.bombs_around) {
-                c.discovered = true;
-                c.redraw();
-            } else c.stepped(true);
+                if (rec !== false) c.stepped(false);
+            }
+            else c.stepped(true);
         }
 }
 
