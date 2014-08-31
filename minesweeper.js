@@ -1,77 +1,101 @@
 var game;
 
-function validate(value) {
+// Validates game configuration
+function validate(value, min, max) {
     var v = Math.round(value);
-    $("btn_start").disabled(value != v || v < 3 || v > 20); 
+    $("btn_start").disabled(value != v || v < min || v > max); 
 }
 
+// Creates new game with user-provided parameters
+// and runs it
 function play() {
     $("welcome").addClass("hidden");
     $("playground").removeClass("hidden");
-    game = new minesweeper(Math.round($("size").val()));
+    game = new minesweeper(
+        Math.round($("width").val()),
+        Math.round($("height").val()),
+        Math.round($("bombs").val())
+    );
     game.run();
 }
 
-function minesweeper(size) {
-    this.size = size;
+// Game data class
+function minesweeper(width, height, bombs) {
+    this.width = width;
+    this.height = height;
+    this.bombs = bombs;
+    
+    // Stores game cells data
     this.cells = new cells();
     this.status = $("result");
 
-    this.id = function(x, y) {return x + ":" + y}
-
+    // Updates game status (moves made/win/loose)
     this.update = function(status) {
         if (!status) status = this.moves + " moves made so far";
         this.status.text(status);
     }
 
-    this.run = function() {
-        // Generate field
-        $("field").clear();
-        for (var y = 0; y < this.size; y++)
-            for (var x = 0, c, tr = $("field").append("tr", true); x < size; x++) {
-                c = new cell(x, y, this);
-                if (!x || x == this.size - 1) c.closed_around -= 3;
-                if (!y || y == this.size - 1) c.closed_around -= 3;
-                tr.append(c);
-            }
-
-        // Set the bombs
-        for (var i = 0, a = x * y / 7; i < a; i++) {
-            var c = this.cells.get(Math.round(size * Math.random()), Math.round(size * Math.random()));
-            if (!c || c.has_bomb) {
-                i--;
-                continue;
-            }
-
+    // Adds a bomb to the field randomly
+    this.addBomb = function() {
+        var c = this.cells.get(
+                Math.round(this.width * Math.random()), 
+                Math.round(this.height * Math.random())
+            );
+        if (c && !c.has_bomb) {
             c.has_bomb = true;
-            for (var x = -1; x < 2; x++)
-                for (var y = -1; y < 2; y++) {
-                    var c1 = this.cells.get(c.x + x, c.y + y);
-                    if (!c1) continue;
-                    c1.bombs_around++;
-                }
-        }
+            c.forEachNeighbor(function(c) {c.bombs_around++});
+        } else this.addBomb();
+    }
 
-        $("field").removeClass("exploded").removeClass("won");
+    this.removeBomb = function(c) {
+        c.has_bomb = false;
+        c.forEachNeighbor(function(c) {c.bombs_around--});
+    }
+
+    // Prevents first move explosion
+    this.checkFirstMove = function(c) {
+        if (c.has_bomb) {
+            this.addBomb();
+            this.removeBomb(c);
+        }
+    }
+
+    this.run = function() {
+        // Reset the field
+        $("field").clear();
+        for (var y = 0; y < this.height; y++)
+            for (var x = 0, c, tr = $("field").append("tr", true); x < this.width; x++) tr.append(new cell(x, y, this));
+
+        // Set up the bombs
+        for (var i = 0; i < this.bombs; i++) this.addBomb();
+
+        // Clear states from previous rounds
+        $("playground").removeClass("exploded").removeClass("won");
+        this.opened = 0;
         this.ended = false;
         this.moves = 0;
         this.update();
     }
 
+    // Called when bomb has exploded
     this.end = function(exploded_cell) {
-        $("field").addClass("exploded");
+        $("playground").addClass("exploded");
         this.ended = true;
         this.cells.each(function(i) {i.redraw()})
         this.update("All Your Base Are Belong To Us!");
     }
 
-    this.won = function() {
-        $("field").addClass("won");
-        this.ended = true;
-        this.update("Congratulations!");
+    // Checks whether game is won
+    this.checkWin = function() {
+        if (this.opened == this.width * this.height - this.bombs) {  
+            $("playground").addClass("won");
+            this.ended = true;
+            this.update("Congratulations!");
+        }
     }
 }
 
+// Collection of the cells
 function cells() {
     this.data = {};
 
@@ -90,11 +114,10 @@ function cells() {
     }
 }
 
-
+// Game field cell
 function cell(x, y, game) {
     this.x = x;
     this.y = y;
-    this.id = x + ":" + y;
     this.game = game;
 
     this.has_bomb = false;
@@ -102,30 +125,23 @@ function cell(x, y, game) {
     this.flagged = false;
 
     this.bombs_around = 0;
-    this.closed_around = 8;
+    //this.closed_around = 8;
 
     this.element = document.createElement("td");
-    this.element.id = this.id;
     this.element.cell = this;
+    
+    // Event handler for cell opening
     this.element.onclick = function() {
+        if (!this.cell.game.moves) this.cell.game.checkFirstMove(this.cell);
         this.cell.stepped();
     }
-
+    
+    // Event handler for cell (un)flagging
     this.element.oncontextmenu = function() {
-        if (this.cell.opened || this.cell.game.ended) return false;
-        this.cell.flagged = !this.cell.flagged;
-        this.cell.redraw();
-
-        // Check if game is won
-        var completed = true, c;
-        for (k in this.cell.game.cells.data) {
-            c = this.cell.game.cells.data[k];
-            if (!c.has_bomb && !c.opened) {
-                completed = false;
-                break;
-            }
+        if (!this.cell.opened && !this.cell.game.ended) {
+            this.cell.flagged = !this.cell.flagged;
+            this.cell.redraw();
         }
-        if (completed) this.cell.game.won();
         return false;
     }
     this.game.cells.put(this);
@@ -135,40 +151,62 @@ function cell(x, y, game) {
 
 var cp = cell.prototype;
 
+// Executes function provided for cell' neighbors
+cp.forEachNeighbor = function(f, exclude_me) {
+    for (var x = -1; x < 2; x++)
+        for (var y = -1; y < 2; y++) {
+            if (!x && !y && exclude_me) continue;
+            var c = this.game.cells.get(this.x + x, this.y + y);
+            if (c) f(c, arguments);
+        }
+}
+
+// Redraws cell
 cp.redraw = function() {
     state = "default";
     if (this.game.ended && this.has_bomb) state = "bomb";
-    else if (this.opened) state = this.closed_around && this.bombs_around ? "discovered a" + this.bombs_around: "opened";
+    else if (this.opened) state = this.bombs_around ? "discovered a" + this.bombs_around: "opened";
     else if (this.flagged) state = "flag " + (this.discovered ? "opened" : "default");
-    //else if (this.discovered) state = "discovered a" + this.bombs_around;
     this.element.className = "cell " + state;
 }
 
-cp.stepped = function(rec) {
+// Handler for cell click event
+cp.stepped = function(discover) {
+    // No clicking allowed if game has ended
     if (this.game.ended || this.opened) return false;
+    // Explosion if clicked the cell with bomb
     if (this.has_bomb) return game.end(this);
 
+    // Updating game moves count
     if (arguments.length == 0) {
         this.game.moves++;
         this.game.update();
     }
 
+    // Marking clicked cell as opened
     this.opened = true;
     this.redraw();
-    for (var x = -1; x < 2; x++)
-        for (var y = -1; y < 2; y++) {
-            if (!x && !y) continue;
 
-            var c = this.game.cells.get(this.x + x, this.y + y);
-            if (!c || c.opened || (c.has_bomb && rec !== false)) continue;
-            c.closed_around--;
-            if (rec === false) continue;
+    // Checking winnig
+    this.game.opened++;
+    this.game.checkWin();
+    
+    // Recursion for the neighbors
+    this.forEachNeighbor(
+            function(c, args) {
+                var discover = args.length > 2 ? args[2] : null;
+                // Skipping opened and armed cells
+                if (c.opened || (c.has_bomb && discover !== false) || discover === false) return;
 
-            if (c.bombs_around) {
-                if (rec !== false) c.stepped(false);
-            }
-            else c.stepped(true);
-        }
+                // If bombs around
+                if (c.bombs_around) {
+                    // ... and we're on the first loop or 
+                    // near the clean cell - keep discover around
+                    if (discover !== false) c.stepped(false);
+                } else 
+                    // If no bombs around - just open the cell
+                    // and discover surrounding ones
+                    c.stepped(true);
+            }, true, discover);
 }
-
 

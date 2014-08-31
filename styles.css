@@ -22,11 +22,19 @@ table {
     border-radius: 4px;
 }
 
-table tbody#field.won {
+.won table tbody#field {
     background-color: #4F4;
 }
 
-table tbody#field.exploded {
+.won h2 {
+    color: #4F4;
+}
+
+.exploded h2 {
+    color: #F44;
+}
+
+.exploded table tbody#field {
     background-color: #F44;
 }
 

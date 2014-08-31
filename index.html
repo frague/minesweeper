@@ -8,8 +8,12 @@
         <div id="welcome">
             <h1>Hello, minesweeper!</h1>
             <p>Choose what size the mine field will be: 
-            <input id="size" type="text" size="2" value="10" onkeyup="validate(this.value)">
-            <button id="btn_start" onclick="play()">Play</button>
+            <input id="width" type="text" size="2" value="10" onkeyup="validate(this.value, 3, 20)"> &times;
+            <input id="height" type="text" size="2" value="10" onkeyup="validate(this.value, 3, 20)"><br>
+            and how many bombs it should contain: 
+            <input id="bombs" type="text" size="2" value="15" onkeyup="validate(this.value, 1, 400)"><br>
+            
+            <button id="btn_start" type="submit" onclick="play()">Play</button>
         </div>
         <div id="playground" class="hidden">
             <h1>They set us up the bomb!</h1>
